@@ -1,5 +1,5 @@
 import React from 'react';
-// CSS import temporarily removed for testing
+import './App.css'; // Make sure this exists
 import DressupGame from './components/DressupGame';
 
 function App() {
