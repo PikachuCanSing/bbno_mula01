@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import Character from './Character';
-import ClothingMenu from './ClothingMenu';
-import SaveButton from './SaveButton';
+// Comment out ALL component imports
+// import Character from './Character';
+// import ClothingMenu from './ClothingMenu';
+// import SaveButton from './SaveButton';
+import '../styles/vaporwave.css';
+import ChatWindow from './ChatWindow';
 
 function DressupGame() {
-  // State to store all available clothing items
+  // Keep your state setup
   const [clothingItems, setClothingItems] = useState({
     hats: [],
     tops: [],
@@ -13,7 +16,6 @@ function DressupGame() {
     accessories: []
   });
   
-  // State to track currently selected items (what the character is wearing)
   const [selectedItems, setSelectedItems] = useState({
     hats: null,
     tops: null,
@@ -22,85 +24,106 @@ function DressupGame() {
     accessories: []
   });
   
-  // State to track which category is currently active in the menu
   const [activeCategory, setActiveCategory] = useState('tops');
   
-  // Load clothing items when component mounts
+  // Add the openWindows state 
+  const [openWindows, setOpenWindows] = useState([
+    { id: 'chat1', type: 'chat', visible: true }
+  ]);
+  
+  // Define closeWindow function before it's used
+  const closeWindow = (id) => {
+    setOpenWindows(prev => prev.filter(window => window.id !== id));
+  };
+  
+  // Add the openWindow function
+  const openWindow = (type) => {
+    const newId = `${type}_${Date.now()}`;
+    setOpenWindows(prev => [...prev, { id: newId, type, visible: true }]);
+  };
+  
+  // Simplified useEffect
   useEffect(() => {
-    // In a real app, you'd fetch these from your assets folder
-    // For now, we'll simulate loading with placeholder data
     setClothingItems({
       hats: [
-       // { id: 'hat1', name: 'Baseball Cap', path: '/assets/hats/hat1.svg' },
-       // { id: 'hat2', name: 'Beanie', path: '/assets/hats/hat2.svg' },
+        { id: 'hat1', name: 'Baseball Cap', path: '' },
+        { id: 'hat2', name: 'Beanie', path: '' },
       ],
       tops: [
-       // { id: 'top1', name: 'T-Shirt', path: '/assets/tops/top1.svg' },
-       // { id: 'top2', name: 'Hoodie', path: '/assets/tops/top2.svg' },
+        { id: 'top1', name: 'T-Shirt', path: '' },
+        { id: 'top2', name: 'Hoodie', path: '' },
       ],
       bottoms: [
-       // { id: 'bottom1', name: 'Jeans', path: '/assets/bottoms/bottom1.svg' },
-       // { id: 'bottom2', name: 'Shorts', path: '/assets/bottoms/bottom2.svg' },
+        { id: 'bottom1', name: 'Jeans', path: '' },
+        { id: 'bottom2', name: 'Shorts', path: '' },
       ],
       shoes: [
-       // { id: 'shoe1', name: 'Sneakers', path: '/assets/shoes/shoe1.svg' },
-        //{ id: 'shoe2', name: 'Boots', path: '/assets/shoes/shoe2.svg' },
+        { id: 'shoe1', name: 'Sneakers', path: '' },
+        { id: 'shoe2', name: 'Boots', path: '' },
       ],
       accessories: [
-        //{ id: 'acc1', name: 'Sunglasses', path: '/assets/accessories/accessory1.svg' },
-        //{ id: 'acc2', name: 'Chain', path: '/assets/accessories/accessory2.svg' },
+        { id: 'acc1', name: 'Sunglasses', path: '' },
+        { id: 'acc2', name: 'Chain', path: '' },
       ]
     });
   }, []);
   
-  // Handle selecting a clothing item
+  // Keep your handler functions
   const handleSelectItem = (item, category) => {
-    if (category === 'accessories') {
-      // For accessories, toggle selection (add/remove from array)
-      setSelectedItems(prev => {
-        const accessoryIndex = prev.accessories.findIndex(acc => acc.id === item.id);
-        
-        if (accessoryIndex > -1) {
-          // Remove if already selected
-          const newAccessories = [...prev.accessories];
-          newAccessories.splice(accessoryIndex, 1);
-          return { ...prev, accessories: newAccessories };
-        } else {
-          // Add if not selected
-          return { ...prev, accessories: [...prev.accessories, item] };
-        }
-      });
-    } else {
-      // For other categories, just replace the current selection
-      setSelectedItems(prev => ({
-        ...prev,
-        [category === 'hats' ? 'hats' : 
-         category === 'tops' ? 'tops' : 
-         category === 'bottoms' ? 'bottoms' : 
-         category === 'shoes' ? 'shoes' : category]: item
-      }));
-    }
+    // Your existing logic...
   };
   
-  // Handle changing the active category
   const handleCategoryChange = (category) => {
     setActiveCategory(category);
   };
   
+  // Render the component
   return (
-    <div className="dressup-game" style={{ 
+    <div className="dressup-game vaporwave-background" style={{ 
       width: '100%', 
       minHeight: '100vh',
-      background: 'linear-gradient(to bottom, #5f2c82, #49a09d)',
       padding: '20px'
     }}>
+      {/* Vaporwave elements */}
+      <div className="vaporwave-grid"></div>
+      <div className="vaporwave-sun"></div>
+      <div className="scanlines"></div>
+      <div className="floating-triangle" style={{ left: '10%', top: '20%' }}></div>
+      <div className="floating-triangle" style={{ right: '15%', bottom: '30%' }}></div>
+      <div className="floating-circle" style={{ left: '20%', bottom: '15%' }}></div>
+      
+      {/* Desktop icon for chat */}
+      <div 
+        onClick={() => openWindow('chat')}
+        style={{
+          position: 'absolute',
+          top: '100px',
+          left: '20px',
+          width: '64px',
+          height: '64px',
+          backgroundColor: 'rgba(255, 255, 255, 0.7)',
+          borderRadius: '5px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: 5
+        }}
+      >
+        <div style={{ fontSize: '32px' }}>💬</div>
+        <div style={{ marginTop: '5px', color: 'white', textShadow: '1px 1px #000' }}>Chat</div>
+      </div>
+      
       <h1 style={{ 
         textAlign: 'center', 
         color: 'white', 
-        textShadow: '2px 2px #ff00de', 
+        textShadow: '2px 2px #ff00de, -2px -2px #00ffff', 
         marginBottom: '20px',
         fontFamily: '"Comic Sans MS", cursive',
-        fontSize: '2.5rem'
+        fontSize: '2.5rem',
+        position: 'relative',
+        zIndex: 3
       }}>
         bbno$ Dress Up Game
       </h1>
@@ -110,10 +133,26 @@ function DressupGame() {
         flexDirection: 'column', 
         alignItems: 'center',
         maxWidth: '800px',
-        margin: '0 auto'
+        margin: '0 auto',
+        position: 'relative',
+        zIndex: 3
       }}>
-        <Character selectedItems={selectedItems} />
+        {/* Debug content */}
+        <div style={{ 
+          backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+          padding: '20px', 
+          borderRadius: '8px',
+          marginBottom: '20px',
+          textAlign: 'center',
+          boxShadow: '0 0 15px rgba(255, 0, 222, 0.5)'
+        }}>
+          <h2>Dress Up Game (Debug Mode)</h2>
+          <p>Components temporarily removed for debugging</p>
+          <p>Active category: {activeCategory}</p>
+          <p>Item count: {clothingItems[activeCategory].length}</p>
+        </div>
         
+        {/* Simple category buttons */}
         <div style={{ 
           display: 'flex', 
           flexWrap: 'wrap', 
@@ -132,7 +171,10 @@ function DressupGame() {
                   '#808080 #ffffff #ffffff #808080' : 
                   '#ffffff #808080 #808080 #ffffff',
                 cursor: 'pointer',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                position: 'relative',
+                zIndex: 3,
+                boxShadow: activeCategory === category ? '0 0 10px rgba(0, 255, 255, 0.5)' : 'none'
               }}
               onClick={() => handleCategoryChange(category)}
             >
@@ -140,15 +182,18 @@ function DressupGame() {
             </button>
           ))}
         </div>
-        
-        <ClothingMenu 
-          items={clothingItems[activeCategory]} 
-          selectedItems={selectedItems}
-          activeCategory={activeCategory}
-          onSelectItem={handleSelectItem} 
-        />
-        
-        <SaveButton selectedItems={selectedItems} />
+
+        {/* Windows */}
+        {openWindows.map(window => {
+          if (window.type === 'chat') {
+            return <ChatWindow 
+              key={window.id} 
+              id={window.id} 
+              onClose={closeWindow} 
+            />;
+          }
+          return null;
+        })}
       </div>
       
       <footer style={{ 
@@ -156,7 +201,9 @@ function DressupGame() {
         color: 'white', 
         padding: '20px', 
         marginTop: '20px',
-        fontSize: '0.8rem'
+        fontSize: '0.8rem',
+        position: 'relative',
+        zIndex: 3
       }}>
         Created by a fan. All bbno$ images are used with fan art permissions.
       </footer>
