@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="95.216pt" height="95.216pt" version="1.1" viewBox="1334.829 -339.439 95.216 95.216">
-  <!--
-	Exported with Concepts: Smarter Sketching
-	Version: 3657 on iOS 17.4
-	https://concepts.app/
-	-->
-  <title>A6EDCF15-72B4-4881-8329-9CF33B75BEEB</title>
-  <desc>Drawing exported from Concepts: Smarter Sketching</desc>
-  <defs></defs>
-  <g id="New_Layer_11" opacity="1.000">
-    <path id="STROKE_575e14db-407e-40c6-99a3-4d360dd2f3f7" opacity="1.000" fill="#6a88c2" stroke="#6a88c2" stroke-width="1.000" stroke-opacity="1.000" stroke-linecap="round" stroke-linejoin="round" d="M 1336.437 -337.831 L 1428.437 -337.831 L 1428.437 -245.831 L 1336.437 -245.831 Z"></path>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+     width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100">
+  <g opacity="1.000">
+    <path 
+      opacity="1.000" 
+      fill="#6a88c2" 
+      stroke="#6a88c2" 
+      stroke-width="1.000" 
+      stroke-opacity="1.000" 
+      stroke-linecap="round" 
+      stroke-linejoin="round" 
+      d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
+    />
   </g>
 </svg>

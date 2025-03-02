@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 // import ClothingMenu from './ClothingMenu';
 // import SaveButton from './SaveButton';
 import '../styles/vaporwave.css';
-import ChatWindow from './ChatWindow';
+import ChatWindow from './Chatwindow';
 
 function DressupGame() {
   // Keep your state setup

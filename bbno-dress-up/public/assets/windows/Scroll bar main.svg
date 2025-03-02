@@ -1,1 +1,17 @@
-<svg height="1940.048pt" viewBox="1667.244 -381.195 153.084 1940.048" width="153.084pt" xmlns="http://www.w3.org/2000/svg"><path d="m1688.051-360.387 111.471-.001v1898.435h-111.471z" fill="#7cd8ef" stroke="#7cd8ef" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<svg 
+  xmlns="http://www.w3.org/2000/svg" 
+  width="100%" 
+  height="100%" 
+  viewBox="0 0 100 1000" 
+  preserveAspectRatio="none"
+>
+  <!-- Vertical scroll bar track -->
+  <path 
+    d="M 10 0 h 80 v 1000 h -80 z" 
+    fill="#7cd8ef" 
+    stroke="#7cd8ef" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+</svg>

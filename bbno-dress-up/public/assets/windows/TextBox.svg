@@ -1,1 +1,17 @@
-<svg height="778.518pt" viewBox="-2001.896 229.432 1341.183 778.518" width="1341.183pt" xmlns="http://www.w3.org/2000/svg"><path d="m-1987.304 244.025 1311.999-.001.001 749.335h-1311.995z" fill="#f7f5e9" stroke="#f7f5e9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<svg 
+  xmlns="http://www.w3.org/2000/svg" 
+  width="100%" 
+  height="100%" 
+  viewBox="0 0 1000 600" 
+  preserveAspectRatio="none"
+>
+  <!-- Text box background -->
+  <path 
+    d="M 10 10 h 980 v 580 h -980 z" 
+    fill="#f7f5e9" 
+    stroke="#f7f5e9" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+</svg>

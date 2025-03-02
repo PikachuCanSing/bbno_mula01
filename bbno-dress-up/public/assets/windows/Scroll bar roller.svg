@@ -1,1 +1,17 @@
-<svg height="49.892pt" viewBox="1334.009 -231.254 95.877 49.892" width="95.877pt" xmlns="http://www.w3.org/2000/svg"><path d="m1336.437-228.826h91.021v45.035h-91.021z" fill="#6a88c2" stroke="#6a88c2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<svg 
+  xmlns="http://www.w3.org/2000/svg" 
+  width="100%" 
+  height="100%" 
+  viewBox="0 0 100 50" 
+  preserveAspectRatio="none"
+>
+  <!-- Scroll bar roller/thumb -->
+  <path 
+    d="M 5 5 h 90 v 40 h -90 z" 
+    fill="#6a88c2" 
+    stroke="#6a88c2" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+</svg>

@@ -1,1 +1,18 @@
-<svg height="11.267pt" viewBox="-1025.427 -6.913 64.343 11.267" width="64.343pt" xmlns="http://www.w3.org/2000/svg"><path d="m-966.658-1.272-53.195-.016" fill="none" stroke="#5d496a" stroke-linecap="round" stroke-linejoin="round" stroke-width="8.043"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<svg 
+  xmlns="http://www.w3.org/2000/svg" 
+  width="100%" 
+  height="100%" 
+  viewBox="0 0 100 100" 
+  preserveAspectRatio="none"
+>
+  <!-- Horizontal line for minimize -->
+  <path 
+    d="M 20 50 h 60" 
+    fill="none" 
+    stroke="#2f2a63" 
+    stroke-width="8" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+</svg>
