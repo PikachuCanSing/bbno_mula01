@@ -9,7 +9,7 @@ function Character({ selectedItems }) {
     'tops',      // Shirts, hoodies, etc.
     'accessories', // Accessories
     'hats',      // Hats
-  ];
+  ];;
   
   // Style for positioning clothing items
   const characterStyle = {
