@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 // import SaveButton from './SaveButton';
 import '../styles/vaporwave.css';
 import ChatWindow from './Chatwindow';
+import { useWindowContext } from '../contexts/WindowContext';
 
 function DressupGame() {
   // Keep your state setup
@@ -16,6 +17,8 @@ function DressupGame() {
     accessories: []
   });
   
+  const { openChatWindow, setChatWindowOpen } = useWindowContext();
+
   const [selectedItems, setSelectedItems] = useState({
     hats: null,
     tops: null,
@@ -33,11 +36,24 @@ function DressupGame() {
   
   // Define closeWindow function before it's used
   const closeWindow = (id) => {
-    setOpenWindows(prev => prev.filter(window => window.id !== id));
-  };
+  const windowToClose = openWindows.find(window => window.id === id);
+  if (windowToClose && windowToClose.type === 'chat') {
+    setChatWindowOpen(false); // Update the context when closing chat
+  }
+  setOpenWindows(prev => prev.filter(window => window.id !== id));
+};
   
   // Add the openWindow function
   const openWindow = (type) => {
+    // For chat windows, check with context first
+    if (type === 'chat') {
+      if (!openChatWindow()) {
+        // If a chat window is already open, don't create another one
+        return;
+      }
+    }
+    
+    // Only gets here if it's not a chat window OR if we're allowed to open one
     const newId = `${type}_${Date.now()}`;
     setOpenWindows(prev => [...prev, { id: newId, type, visible: true }]);
   };
@@ -67,6 +83,14 @@ function DressupGame() {
       ]
     });
   }, []);
+
+  // Tell context about initial chat window
+useEffect(() => {
+  // If we start with a chat window open, update the context
+  if (openWindows.some(window => window.type === 'chat')) {
+    setChatWindowOpen(true);
+  }
+}, []); // Empty dependency array - only runs on component mount
   
   // Keep your handler functions
   const handleSelectItem = (item, category) => {

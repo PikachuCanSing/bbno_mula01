@@ -5,9 +5,20 @@ const WindowContext = createContext();
 export function WindowProvider({ children }) {
   const [chatWindowOpen, setChatWindowOpen] = useState(false);
   
+  // Add this function right here - inside the WindowProvider function
+  const openChatWindow = () => {
+    // Only allow opening if no window is already open
+    if (!chatWindowOpen) {
+      setChatWindowOpen(true);
+      return true;
+    }
+    return false;
+  };
+  
   const value = {
     chatWindowOpen,
-    setChatWindowOpen
+    setChatWindowOpen,
+    openChatWindow  // Add this to the value object
   };
 
   return (
