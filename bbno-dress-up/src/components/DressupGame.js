@@ -65,24 +65,30 @@ function DressupGame() {
   // Keep your state setup
   const { openChatWindow, setChatWindowOpen } = useWindowContext();
 
+
+ const [minimizedWindows, setMinimizedWindows] = useState(new Set());
   const [highestZIndex, setHighestZIndex] = useState(10000);
-  const [minimizedWindows, setMinimizedWindows] = useState(new Set());
 
   const bringToFront = (id) => {
-    setHighestZIndex(prev => prev + 1);
-    setOpenWindows(prev => prev.map(w => w.id === id ? { ...w, zIndex: highestZIndex + 1 } : w));
+    setHighestZIndex((prev) => {
+      const next = prev + 1;
+      setOpenWindows((prevWindows) =>
+        prevWindows.map((w) => (w.id === id ? { ...w, zIndex: next } : w))
+      );
+      return next;
+    });
   };
 
   const handleWindowMinimize = (id) => {
-    setMinimizedWindows(prev => new Set(prev).add(id));
+    setOpenWindows((prev) =>
+      prev.map((w) => (w.id === id ? { ...w, isMinimized: true } : w))
+    );
   };
 
   const handleWindowRestore = (id) => {
-    setMinimizedWindows(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(id);
-      return newSet;
-    });
+    setOpenWindows((prev) =>
+      prev.map((w) => (w.id === id ? { ...w, isMinimized: false } : w))
+    );
     bringToFront(id);
   };
 
@@ -146,7 +152,7 @@ function DressupGame() {
     // For singleton windows, bring to front if already open
     const existing = openWindows.find(w => w.type === app.type);
     if (existing) {
-      if (minimizedWindows.has(existing.id)) {
+      if (existing.isMinimized) {
         handleWindowRestore(existing.id);
       } else {
         bringToFront(existing.id);
@@ -155,8 +161,11 @@ function DressupGame() {
     }
 
     const newId = `${app.type}_${Date.now()}`;
-    setOpenWindows((prev) => [...prev, { ...app, id: newId, zIndex: highestZIndex + 1, isMinimized: false }]);
-    setHighestZIndex(prev => prev + 1);
+    setOpenWindows((prev) => {
+      const nextZ = highestZIndex + 1;
+      setHighestZIndex(nextZ);
+      return [...prev, { ...app, id: newId, zIndex: nextZ, isMinimized: false }];
+    });
 
     // ensure context consistency
     if (app.type === 'chat') {
@@ -358,7 +367,7 @@ function DressupGame() {
         marginTop: '20px',
         fontSize: '0.8rem',
         position: 'relative',
-        zIndex: 3
+        zIndex: 1
       }}>
         Created by a fan. All bbno$ images are used with fan art permissions.
       </footer>

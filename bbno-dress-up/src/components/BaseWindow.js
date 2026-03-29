@@ -43,34 +43,26 @@ function BaseWindow({ title, onClose, id, children, zIndex, isMinimized = false,
     let offsetY = 0;
 
     const handleMouseDown = (e) => {
-      if (maximizeState === 2) return;
+  if (maximizeState === 2) return;
+  
+  if (e.target.closest('button') || 
+      e.target.closest('[data-no-drag="true"]') ||
+      e.target.closest('.scrollbar-track') ||
+      e.target.closest('[data-scrollbar-thumb="true"]') ||
+      e.target.classList.contains('scrollbar-thumb')) {
+    return;
+  }
 
-      const target = e.target;
-      if (
-        target.tagName === 'BUTTON' ||
-        target.tagName === 'INPUT' ||
-        target.tagName === 'IMG' ||
-        target.closest('button') ||
-        e.target.closest('[data-no-drag="true"]') ||
-        e.target.closest('.scrollbar-track') ||
-        e.target.closest('[data-scrollbar-thumb="true"]') ||
-        e.target.classList.contains('scrollbar-thumb')
-      ) {
-        return;
-      }
+  if (onBringToFront) onBringToFront(id);
 
-      if (onBringToFront) onBringToFront(id);
-
-      isDragging = true;
-      const rect = windowElement.getBoundingClientRect();
-      offsetX = e.clientX - rect.left;
-      offsetY = e.clientY - rect.top;
-      e.preventDefault();
-
-      // windowElement.style.zIndex = '10000'; // Removed since zIndex is controlled
-      document.body.style.overflow = 'hidden';
-      document.body.style.cursor = 'move';
-    };
+  isDragging = true;
+  const rect = windowElement.getBoundingClientRect();
+  offsetX = e.clientX - rect.left;
+  offsetY = e.clientY - rect.top;
+  e.preventDefault();
+  document.body.style.overflow = 'visible';
+  document.body.style.cursor = 'move';
+};
 
     const handleMouseMove = (e) => {
       if (!isDragging) return;
@@ -99,12 +91,14 @@ function BaseWindow({ title, onClose, id, children, zIndex, isMinimized = false,
       isDragging = false;
     };
 
-    windowElement.addEventListener('mousedown', handleMouseDown);
+   const titlebar = windowElement.querySelector('.window-titlebar');
+if (titlebar) titlebar.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      windowElement.removeEventListener('mousedown', handleMouseDown);
+     const titlebar = windowElement.querySelector('.window-titlebar');
+if (titlebar) titlebar.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -384,7 +378,7 @@ function BaseWindow({ title, onClose, id, children, zIndex, isMinimized = false,
         width: '400px',
         height: '350px',
         zIndex: zIndex,
-        overflow: 'hidden',
+        overflow: 'visible',
         backgroundColor: '#7cd8ef',
         border: '2px solid #000000',
         transition: 'transform 150ms, opacity 150ms',
@@ -397,6 +391,7 @@ function BaseWindow({ title, onClose, id, children, zIndex, isMinimized = false,
       {renderResizeHandles()}
 
       <div
+      className="window-titlebar"
         style={{
           height: '25px',
           cursor: maximizeState === 2 ? 'default' : 'move',
@@ -444,7 +439,7 @@ function BaseWindow({ title, onClose, id, children, zIndex, isMinimized = false,
             boxShadow: 'inset 1px 1px 0 #ffffff22, inset -1px -1px 0 #2f2a6366'
           }}>
             <button
-              onClick={handleMinimize}
+              onClick={(e) => { e.stopPropagation(); handleMinimize(e); }}
               title="Minimize"
               style={{
                 width: '100%',
@@ -479,7 +474,7 @@ function BaseWindow({ title, onClose, id, children, zIndex, isMinimized = false,
             boxShadow: 'inset 1px 1px 0 #ffffff22, inset -1px -1px 0 #2f2a6366'
           }}>
             <button
-              onClick={handleMaximize}
+              onClick={(e) => { e.stopPropagation(); handleMaximize(e); }}
               title="Maximize"
               style={{
                 width: '100%',
@@ -514,7 +509,7 @@ function BaseWindow({ title, onClose, id, children, zIndex, isMinimized = false,
             boxShadow: 'inset 1px 1px 0 #ffffff22, inset -1px -1px 0 #2f2a6366'
           }}>
             <button
-              onClick={handleClose}
+              onClick={(e) => { e.stopPropagation(); handleClose(e); }}
               title="Close"
               style={{
                 width: '100%',
