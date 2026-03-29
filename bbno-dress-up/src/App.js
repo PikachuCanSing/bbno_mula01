@@ -4,7 +4,7 @@ import DressupGame from './components/DressupGame';
 import { WindowProvider, useWindowContext } from './contexts/WindowContext';
 import { AwayMessageProvider, useAwayMessage } from './contexts/AwayMessageContext';
 import AwayMessageWindow from './components/AwayMessageWindow';
-import ChatWindow from './components/Chatwindow';
+import ChatWindow from './components/ChatWindow';
 
 function App() {
   return (

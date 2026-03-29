@@ -1,16 +1,31 @@
 import React from 'react';
+import html2canvas from 'html2canvas';
 
 function SaveButton({ selectedItems }) {
-  const saveImage = () => {
-    // This is a placeholder - you'll need to install html2canvas first
-    alert('Save button clicked! This will save your creation when implemented.');
-    
+  const saveImage = async () => {
     // Find the character display element
     const characterElement = document.querySelector('.character-display');
     
     if (characterElement) {
-      // In real implementation, use html2canvas to create a screenshot
-      console.log('Would save character display as image');
+      try {
+        const canvas = await html2canvas(characterElement, {
+          backgroundColor: '#c0c0c0',
+          scale: 2, // Higher resolution
+        });
+        
+        // Create download link
+        const link = document.createElement('a');
+        link.download = 'bbno-dressup-creation.png';
+        link.href = canvas.toDataURL();
+        link.click();
+        
+        alert('Your creation has been saved!');
+      } catch (error) {
+        console.error('Error saving image:', error);
+        alert('Sorry, there was an error saving your image. Please try again.');
+      }
+    } else {
+      alert('Character display not found. Please refresh and try again.');
     }
   };
   
