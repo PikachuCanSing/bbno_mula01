@@ -175,11 +175,13 @@ function DressupGame() {
   
   // Render the component
   return (
-    <div className="dressup-game vaporwave-background" style={{ 
-      width: '100%', 
-      minHeight: '100vh',
-      padding: '20px'
-    }}>
+   <div className="dressup-game vaporwave-background" style={{ 
+  width: '100%', 
+  minHeight: '100vh',
+  padding: '20px',
+  position: 'relative',
+  cursor: `url(${process.env.PUBLIC_URL}/assets/art/cursor.png) 0 0, auto`
+}}>
       {/* Vaporwave elements */}
       <div className="vaporwave-grid"></div>
       <div className="vaporwave-sun"></div>
@@ -209,7 +211,7 @@ function DressupGame() {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: 'pointer',
+              cursor: `url(${process.env.PUBLIC_URL}/assets/art/cursorpointer.png) 0 0, pointer`,
               padding: '4px'
             }}
           >
@@ -391,18 +393,17 @@ function DressupGame() {
         <button
           onClick={() => setIsStartMenuOpen(!isStartMenuOpen)}
           style={{
-            height: '22px',
-            backgroundColor: '#6a88c2',
-            border: '2px solid',
-            borderColor: '#bfbaf5 #2f2a63 #2f2a63 #bfbaf5',
-            boxSizing: 'border-box',
-            boxShadow: 'inset 1px 1px 0 #ffffff22, inset -1px -1px 0 #2f2a6366',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 4px',
-            marginLeft: '2px'
-          }}
+  height: '22px',
+  backgroundColor: '#6a88c2',
+  border: '2px solid',
+  borderColor: '#bfbaf5 #2f2a63 #2f2a63 #bfbaf5',
+  boxSizing: 'border-box',
+  boxShadow: 'inset 1px 1px 0 #ffffff22, inset -1px -1px 0 #2f2a6366',
+  display: 'flex',
+  alignItems: 'center',
+  padding: '0 4px',
+  marginLeft: '2px'
+}}
         >
           <img
             src={process.env.PUBLIC_URL + '/assets/art/startlogo.new.svg'}
