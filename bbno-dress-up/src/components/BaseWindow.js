@@ -373,8 +373,8 @@ if (titlebar) titlebar.removeEventListener('mousedown', handleMouseDown);
       ref={windowRef}
       style={{
         position: 'fixed',
-        left: '100px',
-        top: '100px',
+        left: `${(window.innerWidth - 400) / 2}px`,
+top: `${(window.innerHeight - 350) / 2}px`,
         width: '400px',
         height: '350px',
         zIndex: zIndex,

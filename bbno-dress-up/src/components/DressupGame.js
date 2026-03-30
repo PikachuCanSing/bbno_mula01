@@ -77,7 +77,7 @@ function DressupGame() {
   const iconDragGroupRef = useRef([]);
   const dragStartPositionsRef = useRef({});
   const dragStartRef = useRef({ mouseX: 0, mouseY: 0, iconX: 0, iconY: 0 });
-  const skipClickRef = useRef(false);
+  const dragThresholdRef = useRef(0);
   const draggingPositionRef = useRef({ x: 0, y: 0 });
 
   const handleIconMouseDown = (e, iconType) => {
@@ -100,13 +100,12 @@ function DressupGame() {
       iconY: position.y
     };
     draggingPositionRef.current = position;
-    skipClickRef.current = false;
+    dragThresholdRef.current = 0;
     setDragMode('icon');
   };
 
   const handleIconClick = (app) => {
-    if (skipClickRef.current) {
-      skipClickRef.current = false;
+    if (dragThresholdRef.current > 25) {
       return;
     }
 
@@ -114,9 +113,12 @@ function DressupGame() {
   };
 
   const handleDesktopMouseDown = (e) => {
+    if (e.target.closest('.window-titlebar') || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+      return;
+    }
     if (e.target !== desktopRef.current) return;
     e.preventDefault();
-    e.stopPropagation();
+
 
     setSelectedIcons(new Set());
     setSelectionBox({ left: e.clientX, top: e.clientY, width: 0, height: 0 });
@@ -146,9 +148,7 @@ function DressupGame() {
       const deltaY = e.clientY - dragStartRef.current.mouseY;
       const distanceSq = deltaX * deltaX + deltaY * deltaY;
 
-      if (distanceSq > 25) {
-        skipClickRef.current = true;
-      }
+      dragThresholdRef.current = distanceSq;
 
       const desktopRect = desktop.getBoundingClientRect();
       const maxX = Math.max(0, desktopRect.width - 90);
@@ -202,31 +202,28 @@ function DressupGame() {
     }
 
     if (dragMode === 'icon') {
-      if (skipClickRef.current) {
-        const desktop = desktopRef.current;
-        if (desktop) {
-          const desktopRect = desktop.getBoundingClientRect();
-          const maxX = Math.max(0, desktopRect.width - 90);
-          const maxY = Math.max(0, desktopRect.height - 90);
-          const updated = { ...iconPositions };
+      const desktop = desktopRef.current;
+      if (desktop) {
+        const desktopRect = desktop.getBoundingClientRect();
+        const maxX = Math.max(0, desktopRect.width - 90);
+        const maxY = Math.max(0, desktopRect.height - 90);
+        const updated = { ...iconPositions };
 
-          iconDragGroupRef.current.forEach((iconType) => {
-            const pos = iconPositions[iconType] || { x: 0, y: 0 };
-            const snappedX = Math.round(pos.x / 90) * 90;
-            const snappedY = Math.round(pos.y / 90) * 90;
-            updated[iconType] = {
-              x: Math.max(0, Math.min(snappedX, maxX)),
-              y: Math.max(0, Math.min(snappedY, maxY))
-            };
-          });
+        iconDragGroupRef.current.forEach((iconType) => {
+          const pos = iconPositions[iconType] || { x: 0, y: 0 };
+          const snappedX = Math.round(pos.x / 90) * 90;
+          const snappedY = Math.round(pos.y / 90) * 90;
+          updated[iconType] = {
+            x: Math.max(0, Math.min(snappedX, maxX)),
+            y: Math.max(0, Math.min(snappedY, maxY))
+          };
+        });
 
-          setIconPositions(updated);
-        }
+        setIconPositions(updated);
       }
 
       draggingIconRef.current = null;
       iconDragGroupRef.current = [];
-      skipClickRef.current = false;
       setDragMode('none');
     }
   };
@@ -447,18 +444,7 @@ overflowX: 'hidden',
         />
       )}
       
-      <h1 style={{
-        textAlign: 'center', 
-        color: 'white', 
-        textShadow: '2px 2px #ff00de, -2px -2px #00ffff', 
-        marginBottom: '20px',
-        fontFamily: '"Comic Sans MS", cursive',
-        fontSize: '2.5rem',
-        position: 'relative',
-        zIndex: 3
-      }}>
-        bbno$ Dress Up Game
-      </h1>
+      
       
       <div style={{ 
         display: 'flex', 
@@ -467,7 +453,7 @@ overflowX: 'hidden',
         maxWidth: '800px',
         margin: '0 auto',
         position: 'relative',
-        zIndex: 3
+        zIndex: 9999
       }}>
 
         {/* Windows */}
@@ -581,17 +567,7 @@ overflowX: 'hidden',
         })}
       </div>
       
-      <footer style={{ 
-        textAlign: 'center', 
-        color: 'white', 
-        padding: '20px', 
-        marginTop: '20px',
-        fontSize: '0.8rem',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        Created by a fan. All bbno$ images are used with fan art permissions.
-      </footer>
+     
 
       {/* Start Bar */}
       <div style={{
