@@ -412,6 +412,32 @@ function DressupGame() {
   animation: 'sunFloat 6s ease-in-out infinite'
 }}>
 </div>
+{/* Twinkling stars */}
+{[
+  { top: '5%', left: '35%', size: 20, duration: '2.1s', delay: '0s' },
+  { top: '8%', left: '55%', size: 30, duration: '3.4s', delay: '0.5s' },
+  { top: '3%', left: '70%', size: 20, duration: '2.8s', delay: '1.2s' },
+  { top: '12%', left: '80%', size: 20, duration: '1.9s', delay: '0.3s' },
+  { top: '6%', left: '42%', size: 30, duration: '3.1s', delay: '0.8s' },
+  { top: '15%', left: '62%', size: 20, duration: '2.5s', delay: '1.5s' },
+  { top: '9%', left: '88%', size: 20, duration: '3.8s', delay: '0.2s' },
+  { top: '4%', left: '92%', size: 3, duration: '2.3s', delay: '1.8s' },
+  { top: '18%', left: '75%', size: 2, duration: '2.9s', delay: '0.6s' },
+  { top: '7%', left: '30%', size: 2, duration: '3.2s', delay: '1.1s' },
+  { top: '11%', left: '48%', size: 3, duration: '2.6s', delay: '0.9s' },
+  { top: '2%', left: '58%', size: 2, duration: '3.5s', delay: '1.4s' },
+].map((star, i) => (
+  <span key={i} className="star" style={{
+  top: star.top,
+  left: star.left,
+  width: `${star.size}px`,
+  height: `${star.size}px`,
+  animationDuration: star.duration,
+  animationDelay: star.delay,
+  zIndex: 6,
+}} />
+))}
+```
       
       {/* Desktop icons from art folder */}
       <div
@@ -455,7 +481,7 @@ function DressupGame() {
                 cursor: `url(${process.env.PUBLIC_URL}/assets/art/cursorpointer.png) 0 0, pointer`,
                 padding: '4px',
                 userSelect: 'none',
-                backgroundColor: selected ? 'rgba(100, 140, 194, 0.5)' : 'transparent'
+                Colbackgroundor: selected ? 'rgba(100, 140, 194, 0.5)' : 'transparent'
               }}
             >
               <img
