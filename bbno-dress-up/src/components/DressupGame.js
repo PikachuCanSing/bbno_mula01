@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ChatWindow from './ChatWindow';
 import CalendarWindow from './CalendarWindow';
 import InternetExplorerWindow from './InternetExplorerWindow';
@@ -66,8 +66,39 @@ function DressupGame() {
   const { openChatWindow, setChatWindowOpen } = useWindowContext();
 
 
- const [minimizedWindows, setMinimizedWindows] = useState(new Set());
+  const [minimizedWindows, setMinimizedWindows] = useState(new Set());
   const [highestZIndex, setHighestZIndex] = useState(10000);
+
+  const desktopRef = useRef(null);
+  const draggingIconRef = useRef(null);
+  const dragStartRef = useRef({ mouseX: 0, mouseY: 0, iconX: 0, iconY: 0 });
+  const skipClickRef = useRef(false);
+  const draggingPositionRef = useRef({ x: 0, y: 0 });
+
+  const handleIconMouseDown = (e, iconType) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const position = iconPositions[iconType] || { x: 0, y: 0 };
+    draggingIconRef.current = iconType;
+    dragStartRef.current = {
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      iconX: position.x,
+      iconY: position.y
+    };
+    draggingPositionRef.current = position;
+    skipClickRef.current = false;
+  };
+
+  const handleIconClick = (app) => {
+    if (skipClickRef.current) {
+      skipClickRef.current = false;
+      return;
+    }
+
+    openWindow(app);
+  };
 
   const bringToFront = (id) => {
     setHighestZIndex((prev) => {
@@ -114,15 +145,15 @@ function DressupGame() {
     { type: 'hats', label: 'Hats', icon: 'hats.new.svg' },
     { type: 'jackets', label: 'Jackets', icon: 'jackets.new.svg' },
     { type: 'mail', label: 'Mail', icon: 'mail.new.svg' },
-    { type: 'makeup', label: 'Makeup', icon: 'makeup.new.svg' },
+    { type: 'makeup', label: 'Makeup', icon: 'makeupnew.svg' },
     { type: 'matching', label: 'Matching', icon: 'matching.new.svg' },
     { type: 'minesweeper', label: 'Minesweeper', icon: 'minesweeper.new.svg' },
     { type: 'music', label: 'Music', icon: 'music.new.svg' },
     { type: 'mycomputer', label: 'My Computer', icon: 'mycomputer.new.svg' },
-    { type: 'notepad', label: 'Notepad', icon: 'notepad.new.svg' },
+    { type: 'notepad', label: 'Notepad', icon: 'notepadnew.svg' },
     { type: 'pants', label: 'Pants', icon: 'pants.new.svg' },
     { type: 'photos', label: 'Photos', icon: 'photos.new.svg' },
-    { type: 'recyclebin', label: 'Recycle Bin', icon: 'recyclebin.new.svg' },
+    { type: 'recyclebin', label: 'Recycle Bin', icon: 'recylcebin.new.svg' },
     { type: 'shirts', label: 'Shirts', icon: 'shirts.new.svg' },
     { type: 'shoes', label: 'Shoes', icon: 'shoes.new.svg' },
     { type: 'snake', label: 'Snake', icon: 'snake.new.svg' },
@@ -130,6 +161,16 @@ function DressupGame() {
   ];
 
   const [openWindows, setOpenWindows] = useState([]);
+
+  const [iconPositions, setIconPositions] = useState(() => {
+    const init = {};
+    desktopApps.forEach((app, index) => {
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      init[app.type] = { x: col * 90, y: row * 90 };
+    });
+    return init;
+  });
 
   const closeWindow = (id) => {
     const windowToClose = openWindows.find((window) => window.id === id);
@@ -172,6 +213,74 @@ function DressupGame() {
       setChatWindowOpen(true);
     }
   };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      const iconType = draggingIconRef.current;
+      if (!iconType) return;
+
+      const deltaX = e.clientX - dragStartRef.current.mouseX;
+      const deltaY = e.clientY - dragStartRef.current.mouseY;
+      const distanceSq = deltaX * deltaX + deltaY * deltaY;
+
+      if (distanceSq > 25) {
+        skipClickRef.current = true;
+
+        const desktop = desktopRef.current;
+        if (!desktop) return;
+        const desktopRect = desktop.getBoundingClientRect();
+
+        const rawX = dragStartRef.current.iconX + deltaX;
+        const rawY = dragStartRef.current.iconY + deltaY;
+
+        const maxX = Math.max(0, desktopRect.width - 90);
+        const maxY = Math.max(0, desktopRect.height - 90);
+
+        const newX = Math.max(0, Math.min(rawX, maxX));
+        const newY = Math.max(0, Math.min(rawY, maxY));
+
+        draggingPositionRef.current = { x: newX, y: newY };
+        setIconPositions((prev) => ({ ...prev, [iconType]: { x: newX, y: newY } }));
+      }
+    };
+
+    const handleMouseUp = () => {
+      const iconType = draggingIconRef.current;
+      if (!iconType) return;
+
+      if (skipClickRef.current) {
+        const { x: currentX, y: currentY } = draggingPositionRef.current;
+        const snappedX = Math.round(currentX / 90) * 90;
+        const snappedY = Math.round(currentY / 90) * 90;
+
+        const desktop = desktopRef.current;
+        if (!desktop) {
+          draggingIconRef.current = null;
+          return;
+        }
+
+        const desktopRect = desktop.getBoundingClientRect();
+        const maxX = Math.max(0, desktopRect.width - 90);
+        const maxY = Math.max(0, desktopRect.height - 90);
+
+        const finalX = Math.max(0, Math.min(snappedX, maxX));
+        const finalY = Math.max(0, Math.min(snappedY, maxY));
+
+        setIconPositions((prev) => ({ ...prev, [iconType]: { x: finalX, y: finalY } }));
+      }
+
+      draggingIconRef.current = null;
+      skipClickRef.current = false;
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
   
   // Render the component
   return (
@@ -179,6 +288,7 @@ function DressupGame() {
   width: '100%', 
   minHeight: '100vh',
   padding: '20px',
+  paddingBottom: '40px',
   position: 'relative',
   cursor: `url(${process.env.PUBLIC_URL}/assets/art/cursor.png) 0 0, auto`
 }}>
@@ -191,41 +301,61 @@ function DressupGame() {
       <div className="floating-circle" style={{ left: '20%', bottom: '15%' }}></div>
       
       {/* Desktop icons from art folder */}
-      <div style={{
-        position: 'absolute',
-        top: '80px',
-        left: '20px',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(1, 90px)',
-        rowGap: '14px',
-        zIndex: 5
-      }}>
-        {desktopApps.map((app) => (
-          <div
-            key={app.type}
-            onClick={() => openWindow(app)}
-            style={{
-              width: '80px',
-              height: '80px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: `url(${process.env.PUBLIC_URL}/assets/art/cursorpointer.png) 0 0, pointer`,
-              padding: '4px'
-            }}
-          >
-            <img
-              src={getIconSrc(app.icon)}
-              alt={app.label}
-              style={{ width: '56px', height: '56px', marginBottom: '2px' }}
-              onError={(e) => {
-                e.target.src = getFallbackIcon();
+      <div
+        ref={desktopRef}
+        style={{
+          position: 'absolute',
+          top: '80px',
+          left: '20px',
+          right: '20px',
+          bottom: '40px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 90px)',
+          rowGap: '14px',
+          columnGap: '14px',
+          zIndex: 5,
+          overflow: 'hidden'
+        }}
+      >
+        {desktopApps.map((app) => {
+          const pos = iconPositions[app.type] || { x: 0, y: 0 };
+          return (
+            <div
+              key={app.type}
+              onMouseDown={(e) => handleIconMouseDown(e, app.type)}
+              onClick={() => handleIconClick(app)}
+              style={{
+                position: 'absolute',
+                left: `${pos.x}px`,
+                top: `${pos.y}px`,
+                width: '90px',
+                height: '90px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: `url(${process.env.PUBLIC_URL}/assets/art/cursorpointer.png) 0 0, pointer`,
+                padding: '4px',
+                userSelect: 'none'
               }}
-            />
-            <span style={{ fontSize: '10px', textAlign: 'center', lineHeight: '12px', color: 'white' }}>{app.label}</span>
-          </div>
-        ))}
+            >
+              <img
+                src={getIconSrc(app.icon)}
+                alt={app.label}
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  marginBottom: '2px',
+                  filter: 'drop-shadow(1px 1px 0px #000000) drop-shadow(-1px -1px 0px #000000)'
+                }}
+                onError={(e) => {
+                  e.target.src = getFallbackIcon();
+                }}
+              />
+              <span style={{ fontSize: '11px', textAlign: 'center', lineHeight: '12px', color: 'white' }}>{app.label}</span>
+            </div>
+          );
+        })}
       </div>
       
       <h1 style={{
