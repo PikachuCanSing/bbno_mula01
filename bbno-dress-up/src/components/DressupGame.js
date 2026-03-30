@@ -406,7 +406,7 @@ function DressupGame() {
 }}
         >
           <img
-            src={process.env.PUBLIC_URL + '/assets/art/startlogo.new.svg'}
+            src={process.env.PUBLIC_URL + '/assets/art/startlogo.svg'}
             alt="Start"
             style={{ width: '16px', height: '16px', marginRight: '4px' }}
           />
@@ -417,6 +417,27 @@ function DressupGame() {
             color: '#ffffff'
           }}>Start</span>
         </button>
+        {openWindows.filter((w) => w.isMinimized).map((window) => (
+          <button
+            key={window.id}
+            onClick={() => handleWindowRestore(window.id)}
+            style={{
+              backgroundColor: '#6a88c2',
+              border: '2px solid',
+              borderColor: '#bfbaf5 #2f2a63 #2f2a63 #bfbaf5',
+              color: '#e0d0ff',
+              fontSize: '11px',
+              fontWeight: 'bold',
+              height: '22px',
+              padding: '0 8px',
+              marginLeft: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            {window.label}
+
+          </button>
+        ))}
       </div>
 
       {/* Start Menu */}
