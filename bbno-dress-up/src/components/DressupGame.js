@@ -151,8 +151,8 @@ function DressupGame() {
       dragThresholdRef.current = distanceSq;
 
       const desktopRect = desktop.getBoundingClientRect();
-      const maxX = Math.max(0, desktopRect.width - 90);
-      const maxY = Math.max(0, desktopRect.height - 90);
+      const maxX = Math.max(0, desktopRect.width - GRID_SIZE);
+      const maxY = Math.max(0, desktopRect.height - GRID_SIZE);
 
       const basePositions = dragStartPositionsRef.current;
       const newPositions = { ...iconPositions };
@@ -168,6 +168,37 @@ function DressupGame() {
       draggingPositionRef.current = { x: deltaX, y: deltaY };
       setIconPositions(newPositions);
     }
+  };
+
+  const GRID_SIZE = 104;
+
+  const getCellCoordinates = (x, y) => ({
+    col: Math.round(x / GRID_SIZE),
+    row: Math.round(y / GRID_SIZE)
+  });
+
+  const cellKey = (col, row) => `${col},${row}`;
+
+  const findNearestAvailableCell = (targetCol, targetRow, occupiedSet) => {
+    if (!occupiedSet.has(cellKey(targetCol, targetRow))) {
+      return { col: targetCol, row: targetRow };
+    }
+
+    for (let radius = 1; radius <= 50; radius++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        const dy = radius - Math.abs(dx);
+        const candidates = [targetRow + dy, targetRow - dy];
+        for (const candidateRow of candidates) {
+          const candidateCol = targetCol + dx;
+          const key = cellKey(candidateCol, candidateRow);
+          if (!occupiedSet.has(key) && candidateCol >= 0 && candidateRow >= 0) {
+            return { col: candidateCol, row: candidateRow };
+          }
+        }
+      }
+    }
+
+    return { col: targetCol, row: targetRow };
   };
 
   const handleDesktopMouseUp = () => {
@@ -203,25 +234,30 @@ function DressupGame() {
 
     if (dragMode === 'icon') {
       const desktop = desktopRef.current;
-      if (desktop) {
-        const desktopRect = desktop.getBoundingClientRect();
-        const maxX = Math.max(0, desktopRect.width - 90);
-        const maxY = Math.max(0, desktopRect.height - 90);
-        const updated = { ...iconPositions };
+      const updated = { ...iconPositions };
+      const occupied = new Set();
 
-        iconDragGroupRef.current.forEach((iconType) => {
-          const pos = iconPositions[iconType] || { x: 0, y: 0 };
-          const snappedX = Math.round(pos.x / 90) * 90;
-          const snappedY = Math.round(pos.y / 90) * 90;
-          updated[iconType] = {
-            x: Math.max(0, Math.min(snappedX, maxX)),
-            y: Math.max(0, Math.min(snappedY, maxY))
-          };
-        });
+      // Mark occupancy of non-dragged icons to prevent collisions
+      Object.keys(iconPositions).forEach((type) => {
+        if (!iconDragGroupRef.current.includes(type)) {
+          const p = iconPositions[type] || { x: 0, y: 0 };
+          const cell = getCellCoordinates(p.x, p.y);
+          occupied.add(cellKey(cell.col, cell.row));
+        }
+      });
 
-        setIconPositions(updated);
-      }
+      iconDragGroupRef.current.forEach((iconType) => {
+        const pos = iconPositions[iconType] || { x: 0, y: 0 };
+        const targetCell = getCellCoordinates(pos.x, pos.y);
+        const bestCell = findNearestAvailableCell(targetCell.col, targetCell.row, occupied);
+        const clampedX = Math.max(0, Math.min(bestCell.col * GRID_SIZE, desktop ? Math.max(0, desktop.getBoundingClientRect().width - GRID_SIZE) : bestCell.col * GRID_SIZE));
+        const clampedY = Math.max(0, Math.min(bestCell.row * GRID_SIZE, desktop ? Math.max(0, desktop.getBoundingClientRect().height - GRID_SIZE) : bestCell.row * GRID_SIZE));
 
+        updated[iconType] = { x: clampedX, y: clampedY };
+        occupied.add(cellKey(bestCell.col, bestCell.row));
+      });
+
+      setIconPositions(updated);
       draggingIconRef.current = null;
       iconDragGroupRef.current = [];
       setDragMode('none');
@@ -300,7 +336,7 @@ function DressupGame() {
     desktopApps.forEach((app, index) => {
       const col = Math.floor(index / iconsPerColumn);
       const row = index % iconsPerColumn;
-      init[app.type] = { x: col * iconWidth, y: row * iconHeight };
+      init[app.type] = { x: col * iconWidth + 10, y: row * iconHeight + 10 };
     });
     return init;
   });
@@ -353,17 +389,29 @@ function DressupGame() {
   width: '100%', 
   minHeight: '100vh',
   padding: '20px',
-  paddingBottom: '40px',
   position: 'relative',
+  backgroundImage: `url(${process.env.PUBLIC_URL}/assets/art/background.png)`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
   cursor: `url(${process.env.PUBLIC_URL}/assets/art/cursor.png) 0 0, auto`
 }}>
-      {/* Vaporwave elements */}
+   {/* Vaporwave elements */}
       <div className="vaporwave-grid"></div>
-      <div className="vaporwave-sun"></div>
-      <div className="scanlines"></div>
-      <div className="floating-triangle" style={{ left: '10%', top: '20%' }}></div>
-      <div className="floating-triangle" style={{ right: '15%', bottom: '30%' }}></div>
-      <div className="floating-circle" style={{ left: '20%', bottom: '15%' }}></div>
+     <div style={{
+  position: 'absolute',
+  top: '20%',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  width: '280px',
+  height: '280px',
+  borderRadius: '50%',
+  background: 'linear-gradient(to bottom, #ff66ff 0%, #ff44ee 30%, #ff22cc 70%, #cc00aa 100%)',
+  boxShadow: '0 0 60px 20px rgba(255, 100, 255, 0.5), 0 0 120px 40px rgba(200, 0, 200, 0.3), 0 0 200px 80px rgba(180, 0, 220, 0.15)',
+  pointerEvents: 'none',
+  zIndex: 2,
+  animation: 'sunFloat 6s ease-in-out infinite'
+}}>
+</div>
       
       {/* Desktop icons from art folder */}
       <div
@@ -373,17 +421,17 @@ function DressupGame() {
         onMouseUp={handleDesktopMouseUp}
         style={{
           position: 'absolute',
-          top: '20px',
-          left: '20px',
-          right: '20px',
-          bottom: '40px',
+          top: '0px',
+          left: '0px',
+          right: '0px',
+          bottom: '0px',
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 90px)',
+          gridTemplateColumns: 'repeat(2, 104px)',
           rowGap: '14px',
           columnGap: '14px',
           zIndex: 5,
           overflowY: 'auto',
-overflowX: 'hidden',
+          overflowX: 'hidden',
         }}
       >
         {desktopApps.map((app) => {
