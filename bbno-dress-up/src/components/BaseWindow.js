@@ -60,7 +60,7 @@ function BaseWindow({ title, onClose, id, children, zIndex, isMinimized = false,
   offsetX = e.clientX - rect.left;
   offsetY = e.clientY - rect.top;
   e.preventDefault();
-  document.body.style.overflow = 'visible';
+  document.body.style.overflow = 'hidden';
   document.body.style.cursor = 'move';
 };
 
@@ -306,7 +306,66 @@ if (titlebar) titlebar.removeEventListener('mousedown', handleMouseDown);
   };
 
   if (isMinimized) {
-    return null;
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          left: '10px',
+          bottom: '40px',
+          width: '150px',
+          height: '30px',
+          backgroundColor: '#7cd8ef',
+          border: '2px solid',
+          borderColor: '#bfbaf5 #2f2a63 #2f2a63 #bfbaf5',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 8px',
+          cursor: 'pointer',
+          zIndex: 10
+        }}
+        onClick={handleRestore}
+      >
+        <span>{title}</span>
+        <div style={{
+  position: 'relative',
+  width: '14px',
+  height: '14px',
+  backgroundColor: '#6a88c2',
+  border: '2px solid',
+  borderColor: '#bfbaf5 #2f2a63 #2f2a63 #bfbaf5',
+  boxSizing: 'border-box',
+  boxShadow: 'inset 1px 1px 0 #ffffff22, inset -1px -1px 0 #2f2a6366'
+}}>
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      onClose(id);
+    }}
+    title="Close"
+    style={{
+      width: '100%',
+      height: '100%',
+      padding: 0,
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}
+  >
+    <img
+      src={process.env.PUBLIC_URL + '/assets/windows/CloseButton.svg'}
+      alt="Close"
+      width="8"
+      height="8"
+      style={{ filter: 'brightness(0) saturate(100%) invert(12%) sepia(71%) saturate(2052%) hue-rotate(224deg) brightness(93%) contrast(95%)' }}
+    />
+  </button>
+</div>
+      </div>
+    );
   }
 
   return (

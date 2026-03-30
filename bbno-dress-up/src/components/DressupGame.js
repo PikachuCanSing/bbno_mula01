@@ -68,9 +68,14 @@ function DressupGame() {
 
   const [minimizedWindows, setMinimizedWindows] = useState(new Set());
   const [highestZIndex, setHighestZIndex] = useState(10000);
+  const [selectedIcons, setSelectedIcons] = useState(new Set());
+  const [selectionBox, setSelectionBox] = useState(null);
+  const [dragMode, setDragMode] = useState('none');
 
   const desktopRef = useRef(null);
   const draggingIconRef = useRef(null);
+  const iconDragGroupRef = useRef([]);
+  const dragStartPositionsRef = useRef({});
   const dragStartRef = useRef({ mouseX: 0, mouseY: 0, iconX: 0, iconY: 0 });
   const skipClickRef = useRef(false);
   const draggingPositionRef = useRef({ x: 0, y: 0 });
@@ -80,7 +85,14 @@ function DressupGame() {
     e.stopPropagation();
 
     const position = iconPositions[iconType] || { x: 0, y: 0 };
+    const group = selectedIcons.has(iconType) ? Array.from(selectedIcons) : [iconType];
     draggingIconRef.current = iconType;
+    iconDragGroupRef.current = group;
+    dragStartPositionsRef.current = group.reduce((acc, item) => {
+      acc[item] = iconPositions[item] || { x: 0, y: 0 };
+      return acc;
+    }, {});
+
     dragStartRef.current = {
       mouseX: e.clientX,
       mouseY: e.clientY,
@@ -89,6 +101,7 @@ function DressupGame() {
     };
     draggingPositionRef.current = position;
     skipClickRef.current = false;
+    setDragMode('icon');
   };
 
   const handleIconClick = (app) => {
@@ -98,6 +111,124 @@ function DressupGame() {
     }
 
     openWindow(app);
+  };
+
+  const handleDesktopMouseDown = (e) => {
+    if (e.target !== desktopRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    setSelectedIcons(new Set());
+    setSelectionBox({ left: e.clientX, top: e.clientY, width: 0, height: 0 });
+    setDragMode('selection');
+    dragStartRef.current = { mouseX: e.clientX, mouseY: e.clientY, iconX: 0, iconY: 0 };
+  };
+
+  const handleDesktopMouseMove = (e) => {
+    if (dragMode === 'selection') {
+      const startX = dragStartRef.current.mouseX;
+      const startY = dragStartRef.current.mouseY;
+      const currentX = e.clientX;
+      const currentY = e.clientY;
+      const left = Math.min(startX, currentX);
+      const top = Math.min(startY, currentY);
+      const width = Math.abs(currentX - startX);
+      const height = Math.abs(currentY - startY);
+      setSelectionBox({ left, top, width, height });
+      return;
+    }
+
+    if (dragMode === 'icon') {
+      const desktop = desktopRef.current;
+      if (!desktop) return;
+
+      const deltaX = e.clientX - dragStartRef.current.mouseX;
+      const deltaY = e.clientY - dragStartRef.current.mouseY;
+      const distanceSq = deltaX * deltaX + deltaY * deltaY;
+
+      if (distanceSq > 25) {
+        skipClickRef.current = true;
+      }
+
+      const desktopRect = desktop.getBoundingClientRect();
+      const maxX = Math.max(0, desktopRect.width - 90);
+      const maxY = Math.max(0, desktopRect.height - 90);
+
+      const basePositions = dragStartPositionsRef.current;
+      const newPositions = { ...iconPositions };
+      iconDragGroupRef.current.forEach((iconType) => {
+        const original = basePositions[iconType] || { x: 0, y: 0 };
+        const rawX = original.x + deltaX;
+        const rawY = original.y + deltaY;
+        const clampedX = Math.max(0, Math.min(rawX, maxX));
+        const clampedY = Math.max(0, Math.min(rawY, maxY));
+        newPositions[iconType] = { x: clampedX, y: clampedY };
+      });
+
+      draggingPositionRef.current = { x: deltaX, y: deltaY };
+      setIconPositions(newPositions);
+    }
+  };
+
+  const handleDesktopMouseUp = () => {
+    if (dragMode === 'selection') {
+      if (selectionBox) {
+        const desktop = desktopRef.current;
+        if (desktop) {
+          const rect = desktop.getBoundingClientRect();
+          const selLeft = selectionBox.left - rect.left;
+          const selTop = selectionBox.top - rect.top;
+          const selRight = selLeft + selectionBox.width;
+          const selBottom = selTop + selectionBox.height;
+
+          const selected = new Set();
+          desktopApps.forEach((app) => {
+            const pos = iconPositions[app.type] || { x: 0, y: 0 };
+            const iconLeft = pos.x;
+            const iconTop = pos.y;
+            const iconRight = iconLeft + 90;
+            const iconBottom = iconTop + 90;
+
+            const overlaps = !(iconRight < selLeft || iconLeft > selRight || iconBottom < selTop || iconTop > selBottom);
+            if (overlaps) {
+              selected.add(app.type);
+            }
+          });
+          setSelectedIcons(selected);
+        }
+      }
+      setSelectionBox(null);
+      setDragMode('none');
+    }
+
+    if (dragMode === 'icon') {
+      if (skipClickRef.current) {
+        const desktop = desktopRef.current;
+        if (desktop) {
+          const desktopRect = desktop.getBoundingClientRect();
+          const maxX = Math.max(0, desktopRect.width - 90);
+          const maxY = Math.max(0, desktopRect.height - 90);
+          const updated = { ...iconPositions };
+
+          iconDragGroupRef.current.forEach((iconType) => {
+            const pos = iconPositions[iconType] || { x: 0, y: 0 };
+            const snappedX = Math.round(pos.x / 90) * 90;
+            const snappedY = Math.round(pos.y / 90) * 90;
+            updated[iconType] = {
+              x: Math.max(0, Math.min(snappedX, maxX)),
+              y: Math.max(0, Math.min(snappedY, maxY))
+            };
+          });
+
+          setIconPositions(updated);
+        }
+      }
+
+      draggingIconRef.current = null;
+      iconDragGroupRef.current = [];
+      skipClickRef.current = false;
+      setDragMode('none');
+    }
   };
 
   const bringToFront = (id) => {
@@ -164,10 +295,15 @@ function DressupGame() {
 
   const [iconPositions, setIconPositions] = useState(() => {
     const init = {};
+    const iconHeight = 104;
+    const iconWidth = 104;
+    const availableHeight = window.innerHeight - 60;
+    const iconsPerColumn = Math.floor(availableHeight / iconHeight);
+    
     desktopApps.forEach((app, index) => {
-      const col = index % 2;
-      const row = Math.floor(index / 2);
-      init[app.type] = { x: col * 90, y: row * 90 };
+      const col = Math.floor(index / iconsPerColumn);
+      const row = index % iconsPerColumn;
+      init[app.type] = { x: col * iconWidth, y: row * iconHeight };
     });
     return init;
   });
@@ -214,74 +350,6 @@ function DressupGame() {
     }
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      const iconType = draggingIconRef.current;
-      if (!iconType) return;
-
-      const deltaX = e.clientX - dragStartRef.current.mouseX;
-      const deltaY = e.clientY - dragStartRef.current.mouseY;
-      const distanceSq = deltaX * deltaX + deltaY * deltaY;
-
-      if (distanceSq > 25) {
-        skipClickRef.current = true;
-
-        const desktop = desktopRef.current;
-        if (!desktop) return;
-        const desktopRect = desktop.getBoundingClientRect();
-
-        const rawX = dragStartRef.current.iconX + deltaX;
-        const rawY = dragStartRef.current.iconY + deltaY;
-
-        const maxX = Math.max(0, desktopRect.width - 90);
-        const maxY = Math.max(0, desktopRect.height - 90);
-
-        const newX = Math.max(0, Math.min(rawX, maxX));
-        const newY = Math.max(0, Math.min(rawY, maxY));
-
-        draggingPositionRef.current = { x: newX, y: newY };
-        setIconPositions((prev) => ({ ...prev, [iconType]: { x: newX, y: newY } }));
-      }
-    };
-
-    const handleMouseUp = () => {
-      const iconType = draggingIconRef.current;
-      if (!iconType) return;
-
-      if (skipClickRef.current) {
-        const { x: currentX, y: currentY } = draggingPositionRef.current;
-        const snappedX = Math.round(currentX / 90) * 90;
-        const snappedY = Math.round(currentY / 90) * 90;
-
-        const desktop = desktopRef.current;
-        if (!desktop) {
-          draggingIconRef.current = null;
-          return;
-        }
-
-        const desktopRect = desktop.getBoundingClientRect();
-        const maxX = Math.max(0, desktopRect.width - 90);
-        const maxY = Math.max(0, desktopRect.height - 90);
-
-        const finalX = Math.max(0, Math.min(snappedX, maxX));
-        const finalY = Math.max(0, Math.min(snappedY, maxY));
-
-        setIconPositions((prev) => ({ ...prev, [iconType]: { x: finalX, y: finalY } }));
-      }
-
-      draggingIconRef.current = null;
-      skipClickRef.current = false;
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, []);
-  
   // Render the component
   return (
    <div className="dressup-game vaporwave-background" style={{ 
@@ -303,9 +371,12 @@ function DressupGame() {
       {/* Desktop icons from art folder */}
       <div
         ref={desktopRef}
+        onMouseDown={handleDesktopMouseDown}
+        onMouseMove={handleDesktopMouseMove}
+        onMouseUp={handleDesktopMouseUp}
         style={{
           position: 'absolute',
-          top: '80px',
+          top: '20px',
           left: '20px',
           right: '20px',
           bottom: '40px',
@@ -314,11 +385,13 @@ function DressupGame() {
           rowGap: '14px',
           columnGap: '14px',
           zIndex: 5,
-          overflow: 'hidden'
+          overflowY: 'auto',
+overflowX: 'hidden',
         }}
       >
         {desktopApps.map((app) => {
           const pos = iconPositions[app.type] || { x: 0, y: 0 };
+          const selected = selectedIcons.has(app.type);
           return (
             <div
               key={app.type}
@@ -336,7 +409,8 @@ function DressupGame() {
                 justifyContent: 'center',
                 cursor: `url(${process.env.PUBLIC_URL}/assets/art/cursorpointer.png) 0 0, pointer`,
                 padding: '4px',
-                userSelect: 'none'
+                userSelect: 'none',
+                backgroundColor: selected ? 'rgba(100, 140, 194, 0.5)' : 'transparent'
               }}
             >
               <img
@@ -346,7 +420,7 @@ function DressupGame() {
                   width: '64px',
                   height: '64px',
                   marginBottom: '2px',
-                  filter: 'drop-shadow(1px 1px 0px #000000) drop-shadow(-1px -1px 0px #000000)'
+                  filter: 'drop-shadow(1px 1px 0px #1a0a2e) drop-shadow(-1px -1px 0px #1a0a2e)'
                 }}
                 onError={(e) => {
                   e.target.src = getFallbackIcon();
@@ -357,6 +431,21 @@ function DressupGame() {
           );
         })}
       </div>
+      {selectionBox && (
+        <div
+          style={{
+            position: 'fixed',
+            left: selectionBox.left,
+            top: selectionBox.top,
+            width: selectionBox.width,
+            height: selectionBox.height,
+            backgroundColor: 'rgba(180, 160, 255, 0.25)',
+            border: '1px solid #b4a0ff',
+            pointerEvents: 'none',
+            zIndex: 6
+          }}
+        />
+      )}
       
       <h1 style={{
         textAlign: 'center', 
