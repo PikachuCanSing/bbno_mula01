@@ -538,11 +538,10 @@ function DressupGame() {
                   height: '64px',
                   objectFit: 'contain',
                   marginBottom: '2px',
-                  filter: 'drop-shadow(1px 1px 0px #1a0a2e) drop-shadow(-1px -1px 0px #1a0a2e)'
+                  imageRendering: 'pixelated',
+                  filter: 'drop-shadow(1px 0 0 #1a0a2e) drop-shadow(-1px 0 0 #1a0a2e) drop-shadow(0 1px 0 #1a0a2e) drop-shadow(0 -1px 0 #1a0a2e) drop-shadow(3px 3px 0 #1a0a2e)'
                 }}
-                onError={(e) => {
-                  e.target.src = getFallbackIcon();
-                }}
+                onError={(e) => { e.target.src = getFallbackIcon(); }}
               />
               <span style={{ fontSize: '11px', textAlign: 'center', lineHeight: '12px', color: 'white' }}>{app.label}</span>
             </div>
