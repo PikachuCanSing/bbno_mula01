@@ -149,6 +149,7 @@ function DressupGame() {
       const distanceSq = deltaX * deltaX + deltaY * deltaY;
 
       dragThresholdRef.current = distanceSq;
+      if (distanceSq < 25) return;
 
       const desktopRect = desktop.getBoundingClientRect();
       const maxX = Math.max(0, desktopRect.width - GRID_SIZE);
@@ -233,34 +234,38 @@ function DressupGame() {
     }
 
     if (dragMode === 'icon') {
-      const desktop = desktopRef.current;
-      const updated = { ...iconPositions };
-      const occupied = new Set();
-
-      // Mark occupancy of non-dragged icons to prevent collisions
-      Object.keys(iconPositions).forEach((type) => {
-        if (!iconDragGroupRef.current.includes(type)) {
-          const p = iconPositions[type] || { x: 0, y: 0 };
-          const cell = getCellCoordinates(p.x, p.y);
-          occupied.add(cellKey(cell.col, cell.row));
-        }
-      });
-
-      iconDragGroupRef.current.forEach((iconType) => {
-        const pos = iconPositions[iconType] || { x: 0, y: 0 };
-        const targetCell = getCellCoordinates(pos.x, pos.y);
-        const bestCell = findNearestAvailableCell(targetCell.col, targetCell.row, occupied);
-        const clampedX = Math.max(0, Math.min(bestCell.col * GRID_SIZE, desktop ? Math.max(0, desktop.getBoundingClientRect().width - GRID_SIZE) : bestCell.col * GRID_SIZE));
-        const clampedY = Math.max(0, Math.min(bestCell.row * GRID_SIZE, desktop ? Math.max(0, desktop.getBoundingClientRect().height - GRID_SIZE) : bestCell.row * GRID_SIZE));
-
-        updated[iconType] = { x: clampedX, y: clampedY };
-        occupied.add(cellKey(bestCell.col, bestCell.row));
-      });
-
-      setIconPositions(updated);
+      const wasDragged = dragThresholdRef.current >= 25;
+      const dragGroup = [...iconDragGroupRef.current];
       draggingIconRef.current = null;
       iconDragGroupRef.current = [];
       setDragMode('none');
+
+      if (wasDragged) {
+        const desktop = desktopRef.current;
+        const updated = { ...iconPositions };
+        const occupied = new Set();
+
+        Object.keys(iconPositions).forEach((type) => {
+          if (!dragGroup.includes(type)) {
+            const p = iconPositions[type] || { x: 0, y: 0 };
+            const cell = getCellCoordinates(p.x, p.y);
+            occupied.add(cellKey(cell.col, cell.row));
+          }
+        });
+
+        dragGroup.forEach((iconType) => {
+          const pos = iconPositions[iconType] || { x: 0, y: 0 };
+          const targetCell = getCellCoordinates(pos.x, pos.y);
+          const bestCell = findNearestAvailableCell(targetCell.col, targetCell.row, occupied);
+          const clampedX = Math.max(0, Math.min(bestCell.col * GRID_SIZE, desktop ? Math.max(0, desktop.getBoundingClientRect().width - GRID_SIZE) : bestCell.col * GRID_SIZE));
+          const clampedY = Math.max(0, Math.min(bestCell.row * GRID_SIZE, desktop ? Math.max(0, desktop.getBoundingClientRect().height - GRID_SIZE) : bestCell.row * GRID_SIZE));
+
+          updated[iconType] = { x: clampedX, y: clampedY };
+          occupied.add(cellKey(bestCell.col, bestCell.row));
+        });
+
+        setIconPositions(updated);
+      }
     }
   };
 
@@ -288,6 +293,14 @@ function DressupGame() {
   };
 
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
+  const [activeSubmenu, setActiveSubmenu] = useState(null);
+  const [activeSubSubmenu, setActiveSubSubmenu] = useState(null);
+
+  const closeStartMenu = () => {
+    setIsStartMenuOpen(false);
+    setActiveSubmenu(null);
+    setActiveSubSubmenu(null);
+  };
 
   const getIconSrc = (iconPath) => {
     const rawPath = iconPath.startsWith('/') ? iconPath : `/assets/art/${iconPath}`;
@@ -383,6 +396,25 @@ function DressupGame() {
     }
   };
 
+  // Start menu style helpers
+  const smItem = (active) => ({
+    position: 'relative', display: 'flex', alignItems: 'center',
+    padding: '3px 6px 3px 2px', cursor: 'default', userSelect: 'none',
+    whiteSpace: 'nowrap', fontSize: '11px',
+    fontFamily: '"Tahoma", "MS Sans Serif", sans-serif',
+    backgroundColor: active ? '#2f2a63' : 'transparent',
+    color: active ? '#e0d0ff' : '#ffffff',
+  });
+  const smIcon = { width: '22px', flexShrink: 0, fontSize: '15px' };
+  const smLabel = { flex: 1 };
+  const smArrow = { fontSize: '8px', marginLeft: '6px' };
+  const smPanel = {
+    position: 'absolute', left: '100%', top: 0, minWidth: '180px',
+    backgroundColor: '#6a88c2', border: '2px solid',
+    borderColor: '#bfbaf5 #2f2a63 #2f2a63 #bfbaf5',
+    boxShadow: '2px 2px 0px #1a0a2e', zIndex: 1003,
+  };
+
   // Render the component
   return (
    <div className="dressup-game vaporwave-background" style={{ 
@@ -435,6 +467,8 @@ function DressupGame() {
   animationDuration: star.duration,
   animationDelay: star.delay,
   zIndex: 6,
+  backgroundColor: '#fffde7',
+  filter: 'drop-shadow(0 0 4px white) drop-shadow(0 0 8px rgba(255,255,200,0.8))',
 }} />
 ))}
 ```
@@ -467,7 +501,7 @@ function DressupGame() {
             <div
               key={app.type}
               onMouseDown={(e) => handleIconMouseDown(e, app.type)}
-              onClick={() => handleIconClick(app)}
+              onDoubleClick={() => handleIconClick(app)}
               style={{
                 position: 'absolute',
                 left: `${pos.x}px`,
@@ -481,7 +515,7 @@ function DressupGame() {
                 cursor: `url(${process.env.PUBLIC_URL}/assets/art/cursorpointer.png) 0 0, pointer`,
                 padding: '4px',
                 userSelect: 'none',
-                Colbackgroundor: selected ? 'rgba(100, 140, 194, 0.5)' : 'transparent'
+                backgroundColor: selected ? 'rgba(100, 140, 194, 0.5)' : 'transparent'
               }}
             >
               <img
@@ -490,6 +524,7 @@ function DressupGame() {
                 style={{
                   width: '64px',
                   height: '64px',
+                  objectFit: 'contain',
                   marginBottom: '2px',
                   filter: 'drop-shadow(1px 1px 0px #1a0a2e) drop-shadow(-1px -1px 0px #1a0a2e)'
                 }}
@@ -649,7 +684,7 @@ function DressupGame() {
         bottom: 0,
         left: 0,
         right: 0,
-        height: '28px',
+        height: '40px',
         backgroundColor: '#6a88c2',
         borderTop: '2px solid #8aa8e2',
         borderLeft: '2px solid #8aa8e2',
@@ -662,7 +697,7 @@ function DressupGame() {
         <button
           onClick={() => setIsStartMenuOpen(!isStartMenuOpen)}
           style={{
-  height: '22px',
+  height: '32px',
   backgroundColor: '#6a88c2',
   border: '2px solid',
   borderColor: '#bfbaf5 #2f2a63 #2f2a63 #bfbaf5',
@@ -670,14 +705,14 @@ function DressupGame() {
   boxShadow: 'inset 1px 1px 0 #ffffff22, inset -1px -1px 0 #2f2a6366',
   display: 'flex',
   alignItems: 'center',
-  padding: '0 4px',
+  padding: '0 12px',
   marginLeft: '2px'
 }}
         >
           <img
             src={process.env.PUBLIC_URL + '/assets/art/startlogo.svg'}
             alt="Start"
-            style={{ width: '16px', height: '16px', marginRight: '4px' }}
+            style={{ width: '26px', height: '26px', marginRight: '6px' }}
           />
           <span style={{
             fontFamily: '"Tahoma", "MS Sans Serif", "Arial", sans-serif',
@@ -697,8 +732,9 @@ function DressupGame() {
               color: '#e0d0ff',
               fontSize: '11px',
               fontWeight: 'bold',
-              height: '22px',
-              padding: '0 8px',
+              height: '32px',
+              minWidth: '120px',
+              padding: '0 12px',
               marginLeft: '4px',
               cursor: 'pointer'
             }}
@@ -711,36 +747,161 @@ function DressupGame() {
 
       {/* Start Menu */}
       {isStartMenuOpen && (
-        <div style={{
-          position: 'fixed',
-          bottom: '30px',
-          left: '2px',
-          width: '200px',
-          backgroundColor: '#7cd8ef',
-          border: '2px solid #000000',
-          zIndex: 1001
-        }}>
-          <div style={{
-            height: '25px',
-            backgroundColor: '#6a88c2',
-            borderBottom: '2px solid #4a68a2',
-            borderRight: '2px solid #4a68a2',
-            borderTop: '2px solid #8aa8e2',
-            borderLeft: '2px solid #8aa8e2',
-            boxSizing: 'border-box',
+        <div
+          style={{
+            position: 'fixed', bottom: '42px', left: '2px',
+            backgroundColor: '#6a88c2', border: '2px solid',
+            borderColor: '#bfbaf5 #2f2a63 #2f2a63 #bfbaf5',
+            boxShadow: '2px 2px 0px #1a0a2e', zIndex: 1002,
             display: 'flex',
-            alignItems: 'center',
-            padding: '0 5px'
+          }}
+          onMouseLeave={() => { setActiveSubmenu(null); setActiveSubSubmenu(null); }}
+        >
+          {/* Sidebar */}
+          <div style={{
+            width: '26px', flexShrink: 0,
+            background: 'linear-gradient(to top, #1a006a, #3a60c0)',
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: '6px',
           }}>
             <span style={{
-              fontFamily: '"Tahoma", "MS Sans Serif", "Arial", sans-serif',
-              fontWeight: 'bold',
-              fontSize: '16px',
-              color: '#e0d0ff'
+              color: 'white', fontWeight: 'bold', fontSize: '13px',
+              fontFamily: '"Tahoma", sans-serif', letterSpacing: '2px',
+              writingMode: 'vertical-rl', transform: 'rotate(180deg)',
             }}>bbno$</span>
           </div>
-          <div style={{ padding: '10px' }}>
-            <p style={{ margin: 0, color: '#000', fontSize: '12px' }}>Start menu placeholder</p>
+
+          {/* Items */}
+          <div style={{ minWidth: '170px' }}>
+
+            {/* Programs */}
+            <div style={smItem(activeSubmenu === 'programs')}
+              onMouseEnter={() => { setActiveSubmenu('programs'); setActiveSubSubmenu(null); }}>
+              <span style={smIcon}>📁</span><span style={smLabel}>Programs</span><span style={smArrow}>▶</span>
+              {activeSubmenu === 'programs' && (
+                <div style={smPanel}>
+                  {/* Utilities */}
+                  <div style={smItem(activeSubSubmenu === 'utilities')}
+                    onMouseEnter={() => setActiveSubSubmenu('utilities')}>
+                    <span style={smIcon}>📂</span><span style={smLabel}>Utilities</span><span style={smArrow}>▶</span>
+                    {activeSubSubmenu === 'utilities' && (
+                      <div style={smPanel}>
+                        {[{type:'notepad',label:'Notepad',icon:'📝'},{type:'calculator',label:'Calculator',icon:'🔢'},{type:'clock',label:'Clock',icon:'🕐'},{type:'mail',label:'Mail',icon:'✉️'},{type:'music',label:'Music Player',icon:'🎵'},{type:'photos',label:'Photos',icon:'🖼️'}].map(app => (
+                          <div key={app.type} style={smItem(false)} onClick={() => { openWindow(app); closeStartMenu(); }}>
+                            <span style={smIcon}>{app.icon}</span><span style={smLabel}>{app.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {/* Games */}
+                  <div style={smItem(activeSubSubmenu === 'games')}
+                    onMouseEnter={() => setActiveSubSubmenu('games')}>
+                    <span style={smIcon}>🎮</span><span style={smLabel}>Games</span><span style={smArrow}>▶</span>
+                    {activeSubSubmenu === 'games' && (
+                      <div style={smPanel}>
+                        {[{type:'snake',label:'Snake',icon:'🐍'},{type:'minesweeper',label:'Minesweeper',icon:'💣'},{type:'matching',label:'Memory Match',icon:'🃏'}].map(app => (
+                          <div key={app.type} style={smItem(false)} onClick={() => { openWindow(app); closeStartMenu(); }}>
+                            <span style={smIcon}>{app.icon}</span><span style={smLabel}>{app.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ height: '1px', background: '#2f2a63', borderTop: '1px solid #bfbaf5', margin: '2px 0' }} />
+                  <div style={smItem(false)} onMouseEnter={() => setActiveSubSubmenu(null)}
+                    onClick={() => { openWindow({type:'bbnoexplorer',label:'bbno$ Explorer'}); closeStartMenu(); }}>
+                    <span style={smIcon}>🌐</span><span style={smLabel}>bbno$ Explorer</span>
+                  </div>
+                  <div style={smItem(false)} onMouseEnter={() => setActiveSubSubmenu(null)}
+                    onClick={() => { openWindow({type:'mycomputer',label:'My Computer'}); closeStartMenu(); }}>
+                    <span style={smIcon}>💻</span><span style={smLabel}>My Computer</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Favorites */}
+            <div style={smItem(activeSubmenu === 'favorites')}
+              onMouseEnter={() => { setActiveSubmenu('favorites'); setActiveSubSubmenu(null); }}>
+              <span style={smIcon}>⭐</span><span style={smLabel}>Favorites</span><span style={smArrow}>▶</span>
+              {activeSubmenu === 'favorites' && (
+                <div style={smPanel}>
+                  <div style={smItem(false)}><span style={smIcon}>🔗</span><span style={smLabel}>(placeholder)</span></div>
+                </div>
+              )}
+            </div>
+
+            {/* Documents */}
+            <div style={smItem(activeSubmenu === 'documents')}
+              onMouseEnter={() => { setActiveSubmenu('documents'); setActiveSubSubmenu(null); }}>
+              <span style={smIcon}>📄</span><span style={smLabel}>Documents</span><span style={smArrow}>▶</span>
+              {activeSubmenu === 'documents' && (
+                <div style={smPanel}>
+                  <div style={smItem(false)}><span style={smIcon}>📄</span><span style={smLabel}>(no recent documents)</span></div>
+                </div>
+              )}
+            </div>
+
+            {/* Settings */}
+            <div style={smItem(activeSubmenu === 'settings')}
+              onMouseEnter={() => { setActiveSubmenu('settings'); setActiveSubSubmenu(null); }}>
+              <span style={smIcon}>⚙️</span><span style={smLabel}>Settings</span><span style={smArrow}>▶</span>
+              {activeSubmenu === 'settings' && (
+                <div style={smPanel}>
+                  {[{label:'Control Panel',icon:'🖥️'},{label:'Printers',icon:'🖨️'},{label:'Taskbar & Start Menu',icon:'📋'}].map(item => (
+                    <div key={item.label} style={smItem(false)}>
+                      <span style={smIcon}>{item.icon}</span><span style={smLabel}>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Find */}
+            <div style={smItem(activeSubmenu === 'find')}
+              onMouseEnter={() => { setActiveSubmenu('find'); setActiveSubSubmenu(null); }}>
+              <span style={smIcon}>🔍</span><span style={smLabel}>Find</span><span style={smArrow}>▶</span>
+              {activeSubmenu === 'find' && (
+                <div style={smPanel}>
+                  {[{label:'Files or Folders...',icon:'📁'},{label:'Computer',icon:'💻'},{label:'On the Internet...',icon:'🌐'}].map(item => (
+                    <div key={item.label} style={smItem(false)}>
+                      <span style={smIcon}>{item.icon}</span><span style={smLabel}>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Help */}
+            <div style={smItem(activeSubmenu === 'help')}
+              onMouseEnter={() => { setActiveSubmenu('help'); setActiveSubSubmenu(null); }}
+              onClick={() => closeStartMenu()}>
+              <span style={smIcon}>❓</span><span style={smLabel}>Help</span>
+            </div>
+
+            {/* Run */}
+            <div style={smItem(activeSubmenu === 'run')}
+              onMouseEnter={() => { setActiveSubmenu('run'); setActiveSubSubmenu(null); }}
+              onClick={() => closeStartMenu()}>
+              <span style={smIcon}>🏃</span><span style={smLabel}>Run...</span>
+            </div>
+
+            <div style={{ height: '1px', background: '#2f2a63', borderTop: '1px solid #bfbaf5', margin: '2px 0' }} />
+
+            {/* Log Off */}
+            <div style={smItem(activeSubmenu === 'logoff')}
+              onMouseEnter={() => { setActiveSubmenu('logoff'); setActiveSubSubmenu(null); }}
+              onClick={() => closeStartMenu()}>
+              <span style={smIcon}>👤</span><span style={smLabel}>Log Off bbno$...</span>
+            </div>
+
+            {/* Shut Down */}
+            <div style={smItem(activeSubmenu === 'shutdown')}
+              onMouseEnter={() => { setActiveSubmenu('shutdown'); setActiveSubSubmenu(null); }}
+              onClick={() => closeStartMenu()}>
+              <span style={smIcon}>⏻</span><span style={smLabel}>Shut Down...</span>
+            </div>
+
           </div>
         </div>
       )}
