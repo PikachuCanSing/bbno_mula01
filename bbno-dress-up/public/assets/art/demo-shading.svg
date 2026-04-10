@@ -1,0 +1,82 @@
+<svg width="320" height="180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+
+    <!-- OPTION A: Step gradient — hard color bands, no blending -->
+    <linearGradient id="step-purple" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#d4a8f2"/>
+      <stop offset="33%"  stop-color="#d4a8f2"/>
+      <stop offset="33%"  stop-color="#bd8ae6"/>
+      <stop offset="66%"  stop-color="#bd8ae6"/>
+      <stop offset="66%"  stop-color="#8a5ab5"/>
+      <stop offset="100%" stop-color="#8a5ab5"/>
+    </linearGradient>
+    <linearGradient id="step-mint" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#f4fff5"/>
+      <stop offset="33%"  stop-color="#f4fff5"/>
+      <stop offset="33%"  stop-color="#e6f8e7"/>
+      <stop offset="66%"  stop-color="#e6f8e7"/>
+      <stop offset="66%"  stop-color="#c5e8cc"/>
+      <stop offset="100%" stop-color="#c5e8cc"/>
+    </linearGradient>
+
+    <!-- OPTION B: Dithering — checkerboard pixel patterns between color bands -->
+    <!-- purple 25% dark (mostly light) -->
+    <pattern id="dp25" width="2" height="2" patternUnits="userSpaceOnUse">
+      <rect width="2" height="2" fill="#d4a8f2"/>
+      <rect x="1" y="0" width="1" height="1" fill="#8a5ab5"/>
+    </pattern>
+    <!-- purple 50% dither -->
+    <pattern id="dp50" width="2" height="2" patternUnits="userSpaceOnUse">
+      <rect width="2" height="2" fill="#8a5ab5"/>
+      <rect x="0" y="0" width="1" height="1" fill="#d4a8f2"/>
+      <rect x="1" y="1" width="1" height="1" fill="#d4a8f2"/>
+    </pattern>
+    <!-- purple 75% dark (mostly dark) -->
+    <pattern id="dp75" width="2" height="2" patternUnits="userSpaceOnUse">
+      <rect width="2" height="2" fill="#8a5ab5"/>
+      <rect x="0" y="0" width="1" height="1" fill="#d4a8f2"/>
+    </pattern>
+    <!-- mint 25% dark -->
+    <pattern id="dm25" width="2" height="2" patternUnits="userSpaceOnUse">
+      <rect width="2" height="2" fill="#f4fff5"/>
+      <rect x="1" y="0" width="1" height="1" fill="#c5e8cc"/>
+    </pattern>
+    <!-- mint 50% dither -->
+    <pattern id="dm50" width="2" height="2" patternUnits="userSpaceOnUse">
+      <rect width="2" height="2" fill="#c5e8cc"/>
+      <rect x="0" y="0" width="1" height="1" fill="#f4fff5"/>
+      <rect x="1" y="1" width="1" height="1" fill="#f4fff5"/>
+    </pattern>
+    <!-- mint 75% dark -->
+    <pattern id="dm75" width="2" height="2" patternUnits="userSpaceOnUse">
+      <rect width="2" height="2" fill="#c5e8cc"/>
+      <rect x="0" y="0" width="1" height="1" fill="#f4fff5"/>
+    </pattern>
+
+  </defs>
+
+  <!-- labels -->
+  <text x="80"  y="14" font-family="monospace" font-size="11" text-anchor="middle" fill="#222">A: Step Gradient</text>
+  <text x="240" y="14" font-family="monospace" font-size="11" text-anchor="middle" fill="#222">B: Dithered</text>
+
+  <!-- ── OPTION A ── -->
+  <!-- purple step -->
+  <rect x="10"  y="20" width="60" height="150" fill="url(#step-purple)"/>
+  <!-- mint step -->
+  <rect x="90"  y="20" width="60" height="150" fill="url(#step-mint)"/>
+
+  <!-- ── OPTION B ── -->
+  <!-- purple dithered: 5 bands -->
+  <rect x="170" y="20"  width="60" height="30" fill="#d4a8f2"/>
+  <rect x="170" y="50"  width="60" height="30" fill="url(#dp25)"/>
+  <rect x="170" y="80"  width="60" height="30" fill="url(#dp50)"/>
+  <rect x="170" y="110" width="60" height="30" fill="url(#dp75)"/>
+  <rect x="170" y="140" width="60" height="30" fill="#8a5ab5"/>
+  <!-- mint dithered: 5 bands -->
+  <rect x="250" y="20"  width="60" height="30" fill="#f4fff5"/>
+  <rect x="250" y="50"  width="60" height="30" fill="url(#dm25)"/>
+  <rect x="250" y="80"  width="60" height="30" fill="url(#dm50)"/>
+  <rect x="250" y="110" width="60" height="30" fill="url(#dm75)"/>
+  <rect x="250" y="140" width="60" height="30" fill="#c5e8cc"/>
+
+</svg>

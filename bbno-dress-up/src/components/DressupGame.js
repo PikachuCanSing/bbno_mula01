@@ -530,19 +530,21 @@ function DressupGame() {
                 backgroundColor: selected ? 'rgba(100, 140, 194, 0.5)' : 'transparent'
               }}
             >
-              <img
-                src={getIconSrc(app.icon)}
-                alt={app.label}
-                style={{
-                  width: '64px',
-                  height: '64px',
-                  objectFit: 'contain',
-                  marginBottom: '2px',
-                  imageRendering: 'pixelated',
-                  filter: 'drop-shadow(1px 0 0 #1a0a2e) drop-shadow(-1px 0 0 #1a0a2e) drop-shadow(0 1px 0 #1a0a2e) drop-shadow(0 -1px 0 #1a0a2e) drop-shadow(3px 3px 0 #1a0a2e)'
-                }}
-                onError={(e) => { e.target.src = getFallbackIcon(); }}
-              />
+              <div style={{position: 'relative'}}>
+                <img
+                  src={getIconSrc(app.icon)}
+                  alt={app.label}
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    objectFit: 'contain',
+                    marginBottom: '2px',
+                    imageRendering: 'pixelated',
+                    filter: 'saturate(1.6) hue-rotate(20deg) brightness(1.1) drop-shadow(1px 0 0 #1a0a2e) drop-shadow(-1px 0 0 #1a0a2e) drop-shadow(0 1px 0 #1a0a2e) drop-shadow(0 -1px 0 #1a0a2e) drop-shadow(3px 3px 0 #1a0a2e)'
+                  }}
+                  onError={(e) => { e.target.src = getFallbackIcon(); }}
+                />
+              </div>
               <span style={{ fontSize: '11px', textAlign: 'center', lineHeight: '12px', color: 'white' }}>{app.label}</span>
             </div>
           );
