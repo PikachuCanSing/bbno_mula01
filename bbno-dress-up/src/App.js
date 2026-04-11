@@ -3,6 +3,7 @@ import './App.css';
 import DressupGame from './components/DressupGame';
 import { WindowProvider, useWindowContext } from './contexts/WindowContext';
 import { AwayMessageProvider, useAwayMessage } from './contexts/AwayMessageContext';
+import { DressupProvider } from './contexts/DressupContext';
 import AwayMessageWindow from './components/AwayMessageWindow';
 import ChatWindow from './components/ChatWindow';
 
@@ -10,7 +11,9 @@ function App() {
   return (
     <WindowProvider>
       <AwayMessageProvider>
-        <AppContent />
+        <DressupProvider>
+          <AppContent />
+        </DressupProvider>
       </AwayMessageProvider>
     </WindowProvider>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-function BaseWindow({ title, onClose, id, children, zIndex, isMinimized = false, onMinimize, onRestore, onBringToFront }) {
+function BaseWindow({ title, onClose, id, children, zIndex, isMinimized = false, onMinimize, onRestore, onBringToFront, initialWidth = 400, initialHeight = 350 }) {
   const windowRef = useRef(null);
   const [maximizeState, setMaximizeState] = useState(0); // 0=normal, 1=large, 2=fullscreen
   const [originalDimensions, setOriginalDimensions] = useState(null);
@@ -373,10 +373,10 @@ if (titlebar) titlebar.removeEventListener('mousedown', handleMouseDown);
       ref={windowRef}
       style={{
         position: 'fixed',
-        left: `${(window.innerWidth - 400) / 2}px`,
-top: `${(window.innerHeight - 350) / 2}px`,
-        width: '400px',
-        height: '350px',
+        left: `${(window.innerWidth - initialWidth) / 2}px`,
+        top: `${(window.innerHeight - initialHeight) / 2}px`,
+        width: `${initialWidth}px`,
+        height: `${initialHeight}px`,
         zIndex: zIndex,
         overflow: 'visible',
         backgroundColor: '#7cd8ef',
@@ -536,14 +536,11 @@ top: `${(window.innerHeight - 350) / 2}px`,
       </div>
 
       <div style={{
-        padding: '10px',
         height: 'calc(100% - 25px)',
         overflow: 'auto',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
+        position: 'relative'
       }}>
-        <h2 style={{ margin: 0, color: '#000' }}>{title}</h2>
+        {children}
       </div>
     </div>
   );

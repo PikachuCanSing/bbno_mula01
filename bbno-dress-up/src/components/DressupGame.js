@@ -61,9 +61,33 @@ onError={(e) => { e.target.src = process.env.PUBLIC_URL + '/assets/art/folder.ne
   );
 }
 
+function TaskbarClock() {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const pad = (n) => String(n).padStart(2, '0');
+  const h = time.getHours(), m = time.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '6px',
+      padding: '0 10px', height: '32px', marginLeft: 'auto', flexShrink: 0,
+      borderLeft: '1px solid #4a68a2',
+    }}>
+      <span style={{ fontSize: '13px' }}>🔊</span>
+      <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#ffffff', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', whiteSpace: 'nowrap' }}>
+        {h12}:{pad(m)} {ampm}
+      </span>
+    </div>
+  );
+}
+
 function DressupGame() {
   // Keep your state setup
-  const { openChatWindow, setChatWindowOpen } = useWindowContext();
+  const { setChatWindowOpen } = useWindowContext();
 
 
   const [minimizedWindows, setMinimizedWindows] = useState(new Set());
@@ -368,7 +392,9 @@ function DressupGame() {
   };
 
   const openWindow = (app) => {
-    if (app.type === 'chat' && !openChatWindow()) {
+    // Chat is managed solely by App.js via context — never add to openWindows
+    if (app.type === 'chat') {
+      setChatWindowOpen(true);
       return;
     }
 
@@ -389,11 +415,6 @@ function DressupGame() {
       setHighestZIndex(nextZ);
       return [...prev, { ...app, id: newId, zIndex: nextZ, isMinimized: false }];
     });
-
-    // ensure context consistency
-    if (app.type === 'chat') {
-      setChatWindowOpen(true);
-    }
   };
 
   // Start menu style helpers
@@ -417,11 +438,13 @@ function DressupGame() {
 
   // Render the component
   return (
-   <div className="dressup-game vaporwave-background" style={{ 
-  width: '100%', 
-  minHeight: '100vh',
-  padding: '20px',
-  position: 'relative',
+   <div className="dressup-game vaporwave-background" style={{
+  width: '100%',
+  height: '100vh',
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  overflow: 'hidden',
   backgroundImage: `url(${process.env.PUBLIC_URL}/assets/art/background.png)`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
@@ -496,14 +519,13 @@ function DressupGame() {
           top: '0px',
           left: '0px',
           right: '0px',
-          bottom: '0px',
+          bottom: '40px',
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 104px)',
           rowGap: '14px',
           columnGap: '14px',
           zIndex: 5,
-          overflowY: 'auto',
-          overflowX: 'hidden',
+          overflow: 'hidden',
         }}
       >
         {desktopApps.map((app) => {
@@ -754,6 +776,7 @@ function DressupGame() {
 
           </button>
         ))}
+        <TaskbarClock />
       </div>
 
       {/* Start Menu */}
